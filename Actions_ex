@@ -1,0 +1,123 @@
+from searchPlus import *
+from utils import *
+
+line1 = "= = = = = = =\n"
+line2 = "= x . . . . =\n"
+line3 = "= . . . = . =\n"
+line4 = "= . . . = . =\n"
+line5 = "= = = . = . =\n"
+line6 = "= . . ^ . . =\n"
+line7 = "= = = = = = =\n"
+grelha = line1 + line2 + line3 + line4 + line5 + line6 + line7
+
+
+new_state = list(filter(lambda x: x != "", grelha.split(" =\n= ")))[1:-1]
+linha = 0
+dic ={}
+for i in new_state:
+    linha = linha + 1
+    new_state2 = i.split(" ")
+    coluna = 0
+    for e in new_state2:
+        coluna = coluna + 1
+        dic[(linha,coluna)] = e
+
+#chave = [k for k,v in dic.items() if v == '^'][0]
+vmax = 5
+final =[]
+
+"""
+CASO EM QUE ESTAMOS VIRADOS A NORTE:
+"""
+if '^' in dic.values():
+    v = 0
+    l = []
+    chave = [k for k,v in dic.items() if v == '^'][0]
+
+    chave_d = vector_add(chave,(0,1))
+    chave_e = vector_add(chave,(0,-1))
+    move_vector = (-1,0)
+
+    if v == 0:
+        if chave_d in dic.keys() and dic[chave_d] == '.':
+            final.append('D')
+
+        if chave_e in dic.keys() and dic[chave_e] == '.':
+            final.append('E')
+
+    if v > 0:
+        final.append('T')
+
+    if v + 1 <= vmax and (v + 1) <= coluna//2:   
+        for i in range(1,coluna):
+            tuplo = element_wise_product(move_vector,(i,i))
+            new_pos = vector_add(chave,tuplo)
+            print(tuplo)
+            print(new_pos)
+            l.append(dic[new_pos]) 
+        if '=' not in l and new_pos in dic.keys():
+            final.append('A')
+
+"""
+CASO EM QUE ESTAMOS VIRADOS A SUL:
+"""
+if 'v' in dic.values():
+    v = 3
+    l = []
+    chave = [k for k,v in dic.items() if v == 'v'][0]
+    chave_d = vector_add(chave,(0,-1))
+    chave_e = vector_add(chave,(0,1))
+    move_vector = (1,0)
+
+    if v == 0:
+        if chave_d in dic.keys() and dic[chave_d] == '.':
+            final.append('D')
+
+        if chave_e in dic.keys() and dic[chave_e] == '.':
+            final.append('E')
+
+    if v > 0:
+        final.append('T')
+    
+"""
+CASO EM QUE ESTAMOS VIRADOS A ESTE:
+"""
+if '>' in dic.values():
+    v = 3
+    l = []
+    chave = [k for k,v in dic.items() if v == '>'][0]
+    chave_d = vector_add(chave,(1,0))
+    chave_e = vector_add(chave,(-1,0))
+    move_vector = (0,1)
+    if v == 0:
+        if chave_d in dic.keys() and dic[chave_d] == '.':
+            final.append('D')
+
+        if chave_e in dic.keys() and dic[chave_e] == '.':
+            final.append('E')
+
+    if v > 0:
+        final.append('T')
+    
+"""
+CASO EM QUE ESTAMOS VIRADOS A OESTE:
+"""
+if '<' in dic.values():
+    v = 3
+    l = []
+    chave = [k for k,v in dic.items() if v == 'v'][0]
+    chave_d = vector_add(chave,(-1,0))
+    chave_e = vector_add(chave,(1,0))
+    move_vector = (0,-1)
+    if v == 0:
+        if chave_d in dic.keys() and dic[chave_d] == '.':
+            final.append('D')
+
+        if chave_e in dic.keys() and dic[chave_e] == '.':
+            final.append('E')
+
+    if v > 0:
+        final.append('T')
+    
+
+print(final)
