@@ -1,0 +1,203 @@
+from searchPlus import *
+from utils import *
+
+
+line1 = "= = = = = = =\n"
+line2 = "= x . . . . =\n"
+line3 = "= . . . = . =\n"
+line4 = "= . . . = . =\n"
+line5 = "= = = . = . =\n"
+line6 = "= ^ . . . . =\n"
+line7 = "= = = = = = =\n"
+grelha = line1 + line2 + line3 + line4 + line5 + line6 + line7
+
+def string_to_dic(state):
+    new_state = list(filter(lambda x: x != "", state.split(" =\n= ")))[1:-1]
+    linha = 0
+    coluna = 0
+    dic ={}
+    for i in new_state:
+        linha = linha + 1
+        new_state2 = i.split(" ")
+        coluna = 0
+        for e in new_state2:
+            coluna = coluna + 1
+            dic[(linha,coluna)] = e
+        
+    return (dic,linha,coluna)
+    
+def get_keys(state):
+    dic = string_to_dic(state)[0]
+    chave = 0
+    if '^' in dic.values():
+        chave = [k for k,v in dic.items() if v == '^'][0]
+  
+    elif 'v' in dic.values():
+        chave = [k for k,v in dic.items() if v == 'v'][0]
+
+    elif '>' in dic.values():
+        chave = [k for k,v in dic.items() if v == '>'][0]
+
+    elif '<' in dic.values():
+        chave = [k for k,v in dic.items() if v == '<'][0]
+        
+    return chave
+
+
+class Labirinto(Problem):
+
+    def __init__(self, LabInicial=grelha, vmax=3):
+        super().__init__(initial = LabInicial)
+        self.vmax = vmax
+
+    def actions (self, state, v = 0):
+        final =[]
+        l = []
+        dic, linha, coluna = string_to_dic(state)
+
+        if '^' in dic.values():
+            chave = get_keys(state)
+            chave_d = vector_add(chave,(0,1))
+            chave_e = vector_add(chave,(0,-1))
+            move_vector = (-1,0)
+            dominio = linha
+            posicao = linha-chave[0] + 1
+  
+        elif 'v' in dic.values():
+            chave = get_keys(state)
+            chave_d = vector_add(chave,(0,-1))
+            chave_e = vector_add(chave,(0,1))
+            move_vector = (1,0)
+            dominio = linha
+            posicao = chave[0]
+
+        elif '>' in dic.values():
+            chave = get_keys(state)
+            chave_d = vector_add(chave,(1,0))
+            chave_e = vector_add(chave,(-1,0))
+            move_vector = (0,1)
+            dominio = coluna
+            posicao = chave[1]
+
+        elif '<' in dic.values():
+            chave = get_keys(state)
+            #chave_d = vector_add(chave,(-1,0))
+            #chave_e = vector_add(chave,(1,0))
+            move_vector = (0,-1)
+            dominio = coluna
+            posicao = coluna - chave[1] + 1
+
+        if v + 1 <= self.vmax and v+1 < (dominio-posicao):   # esta parte está mal
+            for i in range(1,dominio-posicao + 1):                #
+                tuplo = element_wise_product((i,i),move_vector)   # 
+                new_pos = vector_add(chave,tuplo)                 #
+                l.append(dic[new_pos])                            #
+            
+
+            if '=' not in l and new_pos in dic.keys():            #
+                final.append('A')                                 #
+
+        if v == 0:
+            #if chave_d in dic.keys() and dic[chave_d] == '.':
+            final.append('D')
+
+            #if chave_e in dic.keys() and dic[chave_e] == '.':
+            final.append('E')
+
+        if v > 0:
+            final.append('T')
+        
+        return sorted(final)
+          
+    def result (self, state, action, v = 0):
+        dic, linha, coluna = string_to_dic(state)
+        chave = get_keys(state)
+
+        if action == 'A' and '^' in dic.values():
+            dic[chave], dic[(chave[0]- 1, chave[1])] =dic[(chave[0] - 1, chave[1])], dic[chave]
+        
+        if action == 'A' and 'v' in dic.values():
+            dic[chave], dic[(chave[0]+ 1, chave[1])] =dic[(chave[0] + 1, chave[1])], dic[chave]
+
+        if action == 'A' and '>' in dic.values():
+            dic[chave], dic[(chave[0], chave[1] + 1)] =dic[(chave[0], chave[1] + 1)], dic[chave]
+
+        if action == 'A' and '<' in dic.values():
+            dic[chave], dic[(chave[0], chave[1] -1)] =dic[(chave[0], chave[1]-1)], dic[chave]
+
+        if action == 'E' and 'v' in dic.values():
+            dic[chave] = '>'
+            
+        if action == 'D' and 'v' in dic.values():
+            dic[chave] = '<'  
+            
+        if action == 'E' and '^' in dic.values():
+            dic[chave] = '<'
+        
+        if action == 'D' and '^' in dic.values():
+            dic[chave] = '>'
+            
+        if action == 'E' and '>' in dic.values():
+            dic[chave] = '^'
+            
+        if action == 'D' and '>' in dic.values():
+            dic[chave] = 'v'
+
+        if action == 'E' and '<' in dic.values():
+            dic[chave] = 'v'
+
+        if action == 'D' and '<' in dic.values():
+            dic[chave] = '^'
+        
+        max_row = linha
+        max_col = coluna
+        output_string = ""
+        for row in range(1, max_row + 1):
+            row_values =["="]+[dic.get((row, col), ' ') for col in range(1, max_col + 1)]
+            output_string += ' '.join(row_values)+ " =" + '\n' 
+        
+        output_string = (max_col+2)*"= " +'\n'+output_string +(max_col+2)*"= "
+
+        return output_string
+          
+        
+    def goal_test (self, state):
+
+
+        dic = string_to_dic(self.initial)[0]
+        #print([k for k,v in dic.items() if v == 'x'])
+        #print(get_keys(state))
+        if  get_keys(state) == [k for k,v in dic.items() if v == 'x'][0]:
+            
+            return True
+        
+        else:
+            return False
+        
+
+    def display (self, state):
+        return state
+
+    def __eq__(self,state):
+        self.initial == state.initial
+
+    def executa(self, state, actions_list, verbose=False):
+        """Executa uma sequência de acções a partir do estado devolvendo o triplo formado pelo estado, 
+        pelo custo acumulado e pelo booleano que indica se o objectivo foi ou não atingido. Se o objectivo 
+        for atingido antes da sequência ser atingida, devolve-se o estado e o custo corrente.
+        Há o modo verboso e o não verboso, por defeito."""
+        cost = 0
+        for a in actions_list:
+            seg = self.result(state,a)
+            cost = self.path_cost(cost,state,a,seg)
+            state = seg
+            obj = self.goal_test(state)
+            if verbose:
+                print('Ação:', a)
+                print(self.display(state),end='')
+                print('Custo Total:',cost)
+                print('Atingido o objectivo?', obj)
+                print()
+            if obj:
+                break
+        return (state, cost, obj)
